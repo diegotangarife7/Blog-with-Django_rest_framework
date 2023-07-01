@@ -1,1 +1,1 @@
-# Blog-with-Django_rest_framework
+# Blog with Django rest framework

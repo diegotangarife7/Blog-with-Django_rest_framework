@@ -1,5 +1,7 @@
 from django.contrib.auth.models import BaseUserManager
 
+from rest_framework.authtoken.models import Token
+
 
 
 class UserManager(BaseUserManager):
@@ -30,5 +32,6 @@ class UserManager(BaseUserManager):
         user.is_superuser = True
         user.is_staff = True
         user.save(using=self._db)
+        token, _ = Token.objects.get_or_create(user=user)
 
         return user
