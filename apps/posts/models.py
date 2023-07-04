@@ -9,7 +9,8 @@ from apps.base.models import BaseModel
 
 class Category(BaseModel):
     # id
-    name = models.CharField(max_length=50, verbose_name='Categoria')
+    name = models.CharField(max_length=200, verbose_name='Categoria', unique=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, verbose_name='usuario')
 
     def __str__(self):
         return self.name
@@ -28,6 +29,9 @@ class Post(BaseModel):
     content = models.TextField(verbose_name='Contenido')
     published = models.BooleanField(default=True, verbose_name='Publicado')
     slug = models.CharField(max_length=300, verbose_name='Slug', blank=True, null=True)
+    like = models.PositiveIntegerField(default=0, verbose_name='Me gusta')
+    dislike = models.PositiveIntegerField(default=0, verbose_name='No me gusta')
+    # image = 
 
     def __str__(self):
         return self.author.name + " --- " +  self.title
@@ -51,6 +55,7 @@ class Comment(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, verbose_name='Usuario')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name='Post')
     content = models.TextField(verbose_name='Contenido')
+    like = models.PositiveIntegerField(default=0, verbose_name='Me gusta')
     
     def __str__(self):
         return "Post: " + self.post.title + ' | ' + self.user.name +': "' + self.content + '"'
@@ -66,6 +71,7 @@ class CommentOnTheComment(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, verbose_name='Usuario')
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name='comment')
     content = models.TextField(verbose_name='Contenido')
+    like = models.PositiveIntegerField(default=0, verbose_name='Me gusta')
 
     def __str__(self):
         return " Comentario: " + self.comment.content + " || " + self.user.name + ': "' + self.content + '"' 
