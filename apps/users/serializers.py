@@ -82,6 +82,23 @@ class UserListSerializer(serializers.ModelSerializer):
         ]
 
 
+class UserUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            'email',
+            'name',
+            'last_name',
+            'gender',
+            'twitter'
+        ]
+
+    def validate_name(self, value):
+        if len(value) < 4:
+            raise serializers.ValidationError('El nombre debe contener al menos 4 caracteres')
+        return value
+
 
    
         

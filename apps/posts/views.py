@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 
-from rest_framework.generics import ListCreateAPIView, UpdateAPIView, DestroyAPIView
+from rest_framework.generics import ListCreateAPIView, UpdateAPIView, DestroyAPIView, ListAPIView
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
@@ -39,6 +39,22 @@ class CategoryListCreateAPIView(ListCreateAPIView):
             serializer = self.serializer_class(self.get_queryset(), many=True)
 
         return Response(serializer.data)
+    
+
+class CategorySearchKword(ListAPIView):
+    serializer_class = CategorySerializer
+
+    def get_queryset(self):
+        kword = self.kwargs['kword']
+        return Category.objects.filter(name__icontains=kword, state=True)
+ 
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.serializer_class(queryset, many=True)
+        if queryset.exists():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response({'message: No se encontraron categorias relacionadas con tu busqueda'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoryUpdateAPIView(UpdateAPIView):
@@ -52,7 +68,6 @@ class CategoryUpdateAPIView(UpdateAPIView):
     def update(self, request, *args, **kwargs):
         instance = self.get_object(kwargs.get('pk'))
         serializer = self.get_serializer(instance, data=request.data)
-        print(serializer)
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'Categoria actualizada correctamente!'}, status=status.HTTP_200_OK)
@@ -72,9 +87,5 @@ class CategoryDeleteAPIView(DestroyAPIView):
         instance = self.get_object(pk=pk)
         instance.state = False
         instance.save()
-        return Response({'message': 'Categoria eliminada con exito'},status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Categoria eliminada con exito'}, status=status.HTTP_204_NO_CONTENT)
     
-
-
-
-
