@@ -9,4 +9,5 @@ urlpatterns = [
     path('register/', views.UserRegister.as_view(), name='user_register'),
     path('list-all/', views.UserListAll.as_view(), name='user_list_all'),
     path('update/<int:pk>/', views.UserUpdateAPIView.as_view(), name='user_update'),
+    path('delete/<int:pk>/', views.UserDeleteAPIView.as_view(), name='user_delete'),
 ]

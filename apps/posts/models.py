@@ -34,7 +34,7 @@ class Post(BaseModel):
     # image = 
 
     def __str__(self):
-        return self.author.name + " --- " +  self.title
+        return self.title
     
     def save(self, *args, **kwargs):
         self.slug = slugify(self.title)
@@ -58,7 +58,7 @@ class Comment(BaseModel):
     like = models.PositiveIntegerField(default=0, verbose_name='Me gusta')
     
     def __str__(self):
-        return "Post: " + self.post.title + ' | ' + self.user.name +': "' + self.content + '"'
+        return self.content
 
     class Meta:
         db_table = 'Comment'
@@ -69,12 +69,12 @@ class Comment(BaseModel):
 class CommentOnTheComment(BaseModel):
     # id
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, verbose_name='Usuario')
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name='comment')
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name='Comentario')
     content = models.TextField(verbose_name='Contenido')
     like = models.PositiveIntegerField(default=0, verbose_name='Me gusta')
 
     def __str__(self):
-        return " Comentario: " + self.comment.content + " || " + self.user.name + ': "' + self.content + '"' 
+        return self.content
 
     class Meta:
         db_table = 'CommentOnTheComment'

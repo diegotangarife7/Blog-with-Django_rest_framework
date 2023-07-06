@@ -5,7 +5,16 @@ from rest_framework import serializers
 from .models import User
 
 
-class UserRegisterSerializer(serializers.ModelSerializer):
+
+class UserValidateName:
+
+    def validate_name(self, value):
+        if len(value) < 4:
+            raise serializers.ValidationError('El nombre debe contener al menos 4 caracteres')
+        return value
+
+
+class UserRegisterSerializer(serializers.ModelSerializer, UserValidateName):
 
     password_confirm = serializers.CharField(write_only=True)
     
@@ -23,11 +32,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
                 'password': {'write_only': True},
                 'password_confirm': {'write_only': True}
             }
-        
-    def validate_name(self, value):
-        if len(value) < 4:
-            raise serializers.ValidationError('El nombre debe contener al menos 4 caracteres')
-        return value
     
     def validate_password(self, value):
         if len(value) < 8:
@@ -82,11 +86,12 @@ class UserListSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserUpdateSerializer(serializers.ModelSerializer):
+class UserUpdateSerializer(serializers.ModelSerializer, UserValidateName):
 
     class Meta:
         model = User
         fields = [
+            'id',
             'email',
             'name',
             'last_name',
@@ -94,10 +99,15 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'twitter'
         ]
 
-    def validate_name(self, value):
-        if len(value) < 4:
-            raise serializers.ValidationError('El nombre debe contener al menos 4 caracteres')
-        return value
+
+class UserDeleteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'is_active'
+        ]
 
 
    

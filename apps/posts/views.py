@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.exceptions import PermissionDenied
 
 from .models import Category
 from .serializers import CategorySerializer
@@ -67,6 +68,10 @@ class CategoryUpdateAPIView(UpdateAPIView):
     
     def update(self, request, *args, **kwargs):
         instance = self.get_object(kwargs.get('pk'))
+
+        if instance.user != request.user:
+            raise PermissionDenied('No tienes permisos para actualizar esta categoria')
+        
         serializer = self.get_serializer(instance, data=request.data)
         if serializer.is_valid():
             serializer.save()
