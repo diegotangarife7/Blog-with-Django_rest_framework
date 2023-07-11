@@ -16,8 +16,9 @@ urlpatterns = [
           # post
      path('create/', views.PostCreateAPIView.as_view()),
      path('list/all/', views.PostListAPIView.as_view()),
-     path('detail/<slug>/', views.PostListAPIView.as_view()),
+     path('detail/<slug>/', views.PostDetailAPIView.as_view()),
      path('update/<int:pk>/', views.PostUpdateAPIView.as_view()),
-     path('delete/<int:pk>/', views.PostDeleteAPIView.as_view())
+     path('delete/<int:pk>/', views.PostDeleteAPIView.as_view()),
+     path('search/', views.PostSearchByKwordAuthor.as_view()),
 
 ]

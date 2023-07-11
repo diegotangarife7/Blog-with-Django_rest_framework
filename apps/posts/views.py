@@ -5,7 +5,8 @@ from rest_framework.generics import (
     UpdateAPIView, 
     DestroyAPIView, 
     ListAPIView, 
-    CreateAPIView
+    CreateAPIView,
+    RetrieveAPIView
     )
 from rest_framework import status
 from rest_framework.response import Response
@@ -19,9 +20,9 @@ from .serializers import (
     CategorySerializer, 
     CreatePostSerializer,
     ListPostSerializer,
-    UpdatePostSerializer
+    UpdatePostSerializer,
     )
-
+from .pagination import SmallResultsSetPagination
 
 
 
@@ -131,23 +132,22 @@ class PostCreateAPIView(CreateAPIView):
 class PostListAPIView(ListAPIView):
     serializer_class = ListPostSerializer
     permission_classes = [AllowAny]
-    # pagination_class = 
+    pagination_class = SmallResultsSetPagination
 
     def get_queryset(self):
         return Post.objects.filter(published=True, state=True)
     
-    def get_object(self, slug):
-        return get_object_or_404(self.serializer_class.Meta.model, slug=slug, state=True)
-
     
-    def get(self, request, slug=None, *args, **kwargs):
-        
-        if slug:
-            serializer = self.serializer_class(self.get_object(slug))
-        else:
-            serializer = self.serializer_class(self.get_queryset(), many=True)
+class PostDetailAPIView(RetrieveAPIView):
+    serializer_class = ListPostSerializer
+    permission_classes = [AllowAny]
 
-        return Response(serializer.data)
+    def get_queryset(self):
+        return Post.objects.filter(state=True, published=True)
+
+    def get_object(self):
+        slug = self.kwargs['slug']
+        return get_object_or_404(self.get_queryset(), slug=slug)
 
 
 class PostUpdateAPIView(UpdateAPIView):
@@ -188,5 +188,30 @@ class PostDeleteAPIView(DestroyAPIView):
             return Response({'message': 'Categoria eliminada con exito'}, status=status.HTTP_204_NO_CONTENT)
         
         return Response({'message': 'No puedes eliminar esta categoria'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+
+class PostSearchByKwordAuthor(ListAPIView):
+    serializer_class = ListPostSerializer
+
+    def get_queryset(self):
+        kword = self.request.query_params.get('kword', None)
+        author = self.request.query_params.get('author', None)
+
+        if kword and author:
+            return Post.objects.filter(title__icontains=kword, author__name__icontains=author, state=True, published=True)
+        elif kword:
+            return Post.objects.filter(title__icontains=kword, state=True, published=True)
+        elif author:
+            return Post.objects.filter(author__name__icontains=author, state=True, published=True)
+    
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.serializer_class(queryset, many=True)
+        if queryset.exists():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response({'message: No se encontraron post relacionadas con tu busqueda'}, status=status.HTTP_404_NOT_FOUND)
 
 
+class SeeMyPost(ListAPIView):
+    pass

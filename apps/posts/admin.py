@@ -13,7 +13,7 @@ admin.site.register(Category, CategoryAdmin)
 class PostAdmin(admin.ModelAdmin):
     list_display = ['id', 'author', 'category', 'title', 'content', 'published', 'like', 'dislike', 'state', 'created_date', 'modified_date', 'deleted_date']
     search_fields = ["title"]
-    list_filter = ['state']
+    list_filter = ['state', 'published']
 admin.site.register(Post, PostAdmin)
 
 
