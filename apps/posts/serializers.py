@@ -11,7 +11,6 @@ from .models import (
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     user = serializers.SlugRelatedField(slug_field='name', read_only=True)
 
     class Meta:
@@ -33,42 +32,104 @@ class CategorySerializer(serializers.ModelSerializer):
 
         return value
 
-        
-class PostSerializer(serializers.ModelSerializer):
+
+class CreatePostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
         fields = [
             'id',
-            'created_date',
             'author',
             'category',
             'title',
             'content',
-            'published',
-            'slug'
         ]  
 
+        extra_kwargs = {
+                'author': {'read_only': True}, 
+            }
 
-class CommentSerializer(serializers.ModelSerializer):
+
+class UpdatePostSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Comment
+        model = Post
         fields = [
             'id',
-            'user',
-            'post',
-            'content'
+            'category',
+            'title',
+            'content',
+            'published'
         ]
-
+        
 
 class CommentOnTheCommentSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
 
     class Meta:
         model = CommentOnTheComment
         fields = [
             'id',
             'user',
-            'comment',
             'content'
         ]
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    comment_the_comment = CommentOnTheCommentSerializer(many=True, read_only=True, source='comment')
+
+    class Meta:
+        model = Comment
+        fields = [
+            'id',
+            'user',
+            'content',
+            'comment_the_comment'
+        ]
+
+
+class ListPostSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField()
+    category = serializers.StringRelatedField()
+    comments = CommentSerializer(many=True, read_only=True, source='post')
+
+    class Meta:
+        model = Post
+        fields = [
+            'id',
+            'slug',
+            'created_date',
+            'author',
+            'category',
+            'title',
+            'content',
+            'like',
+            'dislike',
+            'comments'
+        ]
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
