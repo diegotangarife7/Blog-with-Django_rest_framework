@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.db.models import Prefetch
 
 from rest_framework.generics import (
     ListCreateAPIView, 
@@ -15,12 +16,14 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import PermissionDenied
 
 
-from .models import Category, Post
+from .models import Category, Post, Comment
 from .serializers import (
     CategorySerializer, 
     CreatePostSerializer,
     ListPostSerializer,
     UpdatePostSerializer,
+    CommentCreateDeleteSerializer,
+    CommentListSerializer
     )
 from .pagination import SmallResultsSetPagination
 
@@ -110,7 +113,7 @@ class CategoryDeleteAPIView(DestroyAPIView):
         return Response({'message': 'Categoria eliminada con exito'}, status=status.HTTP_204_NO_CONTENT)
     
 
-# -- Post ---
+# -- Posts ---
 
 class PostCreateAPIView(CreateAPIView):
     serializer_class = CreatePostSerializer
@@ -121,12 +124,20 @@ class PostCreateAPIView(CreateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             user = request.user
-            print(user)
             serializer.save(author=user)
-            print(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class PostListAPIView(ListAPIView):
+#     serializer_class = ListPostSerializer
+#     permission_classes = [AllowAny]
+#     pagination_class = SmallResultsSetPagination
+
+#     def get_queryset(self):
+#         return Post.objects.filter(published=True, state=True).order_by('-created_date')
+
 
 
 class PostListAPIView(ListAPIView):
@@ -135,20 +146,17 @@ class PostListAPIView(ListAPIView):
     pagination_class = SmallResultsSetPagination
 
     def get_queryset(self):
-        return Post.objects.filter(published=True, state=True)
-    
-    
+        return Post.objects.filter(published=True, state=True).order_by('-created_date')
+
+
 class PostDetailAPIView(RetrieveAPIView):
     serializer_class = ListPostSerializer
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        return Post.objects.filter(state=True, published=True)
-
     def get_object(self):
         slug = self.kwargs['slug']
-        return get_object_or_404(self.get_queryset(), slug=slug)
-
+        return get_object_or_404(Post, slug=slug)
+        
 
 class PostUpdateAPIView(UpdateAPIView):
     serializer_class = UpdatePostSerializer
@@ -184,10 +192,11 @@ class PostDeleteAPIView(DestroyAPIView):
         instance = self.get_object(pk=pk)
         if request.user == instance.author:
             instance.state = False
+            instance.published = False
             instance.save()
-            return Response({'message': 'Categoria eliminada con exito'}, status=status.HTTP_204_NO_CONTENT)
+            return Response({'message': 'Post eliminado con exito'}, status=status.HTTP_204_NO_CONTENT)
         
-        return Response({'message': 'No puedes eliminar esta categoria'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'message': 'No puedes eliminar esta post'}, status=status.HTTP_401_UNAUTHORIZED)
     
 
 class PostSearchByKwordAuthor(ListAPIView):
@@ -210,8 +219,76 @@ class PostSearchByKwordAuthor(ListAPIView):
         if queryset.exists():
             return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response({'message: No se encontraron post relacionadas con tu busqueda'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'message: No se encontraron post relacionados con tu busqueda'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class SeeMyPost(ListAPIView):
-    pass
+    serializer_class = ListPostSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_queryset(self):
+        user = self.request.user
+        published = self.request.query_params.get('published', None)
+        un_published = self.request.query_params.get('un_published', None)
+
+        if published:
+            return Post.objects.filter(state=True, author=user, published=True)
+        elif un_published:
+            return Post.objects.filter(state=True, author=user, published=False)
+        else:
+            return Post.objects.filter(state=True, author=user)
+    
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.serializer_class(queryset, many=True)
+        if queryset.exists():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response({'message': 'No tienes ningun post'}, status=status.HTTP_204_NO_CONTENT)
+    
+
+
+# -- Comments ---
+
+
+class CommentCreateAPIView(CreateAPIView):
+    serializer_class = CommentCreateDeleteSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_object(self):
+        post_id = self.kwargs['pk']
+        post = get_object_or_404(Post, pk=post_id)
+        return post
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            post = self.get_object()
+            serializer.save(user=user, post=post)   
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class CommentDeleteAPIView(DestroyAPIView):
+    serializer_class = CommentCreateDeleteSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_object(self):
+        pk = self.kwargs['pk']
+        return get_object_or_404(self.serializer_class.Meta.model, pk=pk, state=True)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if request.user == instance.user:
+            instance.state = False
+            instance.save()
+            return Response({'message': 'comentario eliminado'}, status=status.HTTP_204_NO_CONTENT)
+
+        return Response({'message': 'No puedes eliminar este comentario'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+

@@ -13,12 +13,17 @@ urlpatterns = [
      path('category/delete/<int:pk>/', views.CategoryDeleteAPIView.as_view()),
      path('categories/search/', views.CategorySearchKword.as_view()),
 
-          # post
+          # posts
      path('create/', views.PostCreateAPIView.as_view()),
      path('list/all/', views.PostListAPIView.as_view()),
      path('detail/<slug>/', views.PostDetailAPIView.as_view()),
      path('update/<int:pk>/', views.PostUpdateAPIView.as_view()),
      path('delete/<int:pk>/', views.PostDeleteAPIView.as_view()),
      path('search/', views.PostSearchByKwordAuthor.as_view()),
+     path('see/all/', views.SeeMyPost.as_view()),
+
+          # Comments
+     path('comment/create/<int:pk>/', views.CommentCreateAPIView.as_view()),
+     path('comment/delete/<int:pk>/', views.CommentDeleteAPIView.as_view()),
 
 ]

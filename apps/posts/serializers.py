@@ -9,7 +9,6 @@ from .models import (
 
 
 
-
 class CategorySerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(slug_field='name', read_only=True)
 
@@ -33,7 +32,20 @@ class CategorySerializer(serializers.ModelSerializer):
         return value
 
 
-class CreatePostSerializer(serializers.ModelSerializer):
+class ValidateTitleAndContent:
+
+    def validate_title(self, value):
+        if len(value)<=3:
+            raise serializers.ValidationError('El titulo debe contener al menos 4 caracteres')
+        return value
+    
+    def validate_content(self, value):
+        if len(value)<=20:
+            raise serializers.ValidationError('El contenido de tu post es muy corto')
+        return value
+
+
+class CreatePostSerializer(serializers.ModelSerializer, ValidateTitleAndContent):
 
     class Meta:
         model = Post
@@ -48,9 +60,9 @@ class CreatePostSerializer(serializers.ModelSerializer):
         extra_kwargs = {
                 'author': {'read_only': True}, 
             }
+        
 
-
-class UpdatePostSerializer(serializers.ModelSerializer):
+class UpdatePostSerializer(serializers.ModelSerializer, ValidateTitleAndContent):
 
     class Meta:
         model = Post
@@ -61,38 +73,44 @@ class UpdatePostSerializer(serializers.ModelSerializer):
             'content',
             'published'
         ]
-        
 
-class CommentOnTheCommentSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
 
+class CommentCreateDeleteSerializer(serializers.ModelSerializer):
+    
     class Meta:
-        model = CommentOnTheComment
+        model = Comment
         fields = [
-            'id',
-            'user',
             'content'
         ]
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
-    comment_the_comment = CommentOnTheCommentSerializer(many=True, read_only=True, source='comment')
 
+class CommentListSerializer(serializers.ModelSerializer):
+
+    user = serializers.StringRelatedField()
+    
     class Meta:
         model = Comment
         fields = [
             'id',
+            'created_date',
             'user',
             'content',
-            'comment_the_comment'
+            'like',
+            'state'
         ]
 
 
 class ListPostSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField()
     category = serializers.StringRelatedField()
-    comments = CommentSerializer(many=True, read_only=True, source='post')
+
+    comments = serializers.SerializerMethodField()
+
+    def get_comments(self, obj):
+        comments = Comment.objects.filter(post=obj, state=True)
+        serializer = CommentListSerializer(comments, many=True)
+        return serializer.data
 
     class Meta:
         model = Post
@@ -101,6 +119,7 @@ class ListPostSerializer(serializers.ModelSerializer):
             'slug',
             'created_date',
             'author',
+            'published',
             'category',
             'title',
             'content',

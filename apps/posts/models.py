@@ -53,7 +53,7 @@ class Post(BaseModel):
 class Comment(BaseModel):
     # id
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, verbose_name='Usuario')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name='Post', related_name='post')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name='Post', related_name='comments')
     content = models.TextField(verbose_name='Contenido')
     like = models.PositiveIntegerField(default=0, verbose_name='Me gusta')
     
@@ -69,7 +69,7 @@ class Comment(BaseModel):
 class CommentOnTheComment(BaseModel):
     # id
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, verbose_name='Usuario')
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name='Comentario', related_name='comment')
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name='Comentario', related_name='comments_on_the_comments')
     content = models.TextField(verbose_name='Contenido')
     like = models.PositiveIntegerField(default=0, verbose_name='Me gusta')
 
