@@ -8,21 +8,31 @@ from rest_framework.generics import (
     CreateAPIView,
     RetrieveAPIView
     )
+
+from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import PermissionDenied
 
-from .models import Category, Post, Comment
+from .models import (
+    Category, 
+    Post, 
+    Comment,
+    LikePost,
+    DisLikePost
+    )
+
 from .serializers import (
     CategorySerializer, 
     CreatePostSerializer,
     ListPostSerializer,
     UpdatePostSerializer,
     CommentCreateDeleteSerializer,
-    CommentOnTheCommentCreateDeleteSerializer
+    CommentOnTheCommentCreateDeleteSerializer,
     )
+
 from .pagination import SmallResultsSetPagination
 
 
@@ -319,3 +329,33 @@ class CommentOnTheCommentDeleteAPIView(DestroyAPIView):
         
         return Response({'message': 'Not Found'},status=status.HTTP_404_NOT_FOUND)
     
+
+# -- likes --
+
+class PostLike(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_object(self):
+        pk=self.kwargs['pk']
+        return get_object_or_404(Post, pk=pk)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        post = self.get_object()
+        try:
+            like, created = LikePost.objects.get_or_create(user=user, post=post, quantity=1)
+            if created:
+                return Response({'message': 'like creado'}, status=status.HTTP_201_CREATED)
+            if like:
+                return Response({'message': 'like recuperado'},status=status.HTTP_200_OK)
+        except:
+            return Response({'mesagge': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        like = get_object_or_404(LikePost, post=self.get_object(), user=request.user)
+        like.delete()
+        return Response({'message': 'se elimino el like'}, status=status.HTTP_204_NO_CONTENT)
+
+
+# -- dis likes --

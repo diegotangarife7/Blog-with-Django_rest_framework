@@ -4,7 +4,9 @@ from .models import (
     Category,
     Post,
     Comment,
-    CommentOnTheComment
+    CommentOnTheComment,
+    LikePost,
+    DisLikePost
 )
 
 
@@ -104,8 +106,6 @@ class CommentOnTheCommentSerializer(serializers.ModelSerializer):
             'created_date',
             'user',
             'content',
-            'like',
-            'state'
         ]
 
 
@@ -125,8 +125,6 @@ class CommentListSerializer(serializers.ModelSerializer):
             'created_date',
             'user',
             'content',
-            'like',
-            'state',
             'comments_on_the_comments'
         ]
 
@@ -135,6 +133,11 @@ class ListPostSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField()
     category = serializers.StringRelatedField()
     comments = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
+
+    def get_likes(self, obj):
+        number_likes = LikePost.objects.filter(post=obj).count()
+        return number_likes
 
     def get_comments(self, obj):
         comments = Comment.objects.filter(post=obj, state=True).order_by('-id')
@@ -152,11 +155,9 @@ class ListPostSerializer(serializers.ModelSerializer):
             'category',
             'title',
             'content',
-            'like',
-            'dislike',
+            'likes',
             'comments',
         ]
-        
 
 
 

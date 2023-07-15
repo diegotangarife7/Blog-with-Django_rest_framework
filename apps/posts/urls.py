@@ -30,4 +30,9 @@ urlpatterns = [
      path('comment/on/the/comment/create/<int:pk>/', views.CommentOnTheCommentCreateAPIView.as_view()),
      path('comment/on/the/comment/delete/<int:pk>/', views.CommentOnTheCommentDeleteAPIView.as_view()),
 
+          # like
+     path('like/<int:pk>/', views.PostLike.as_view()),
+     path('like/delete/<int:pk>/', views.PostLike.as_view()),
+
 ]
+          

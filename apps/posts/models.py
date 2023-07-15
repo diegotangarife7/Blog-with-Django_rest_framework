@@ -29,8 +29,6 @@ class Post(BaseModel):
     content = models.TextField(verbose_name='Contenido')
     published = models.BooleanField(default=True, verbose_name='Publicado')
     slug = models.CharField(max_length=300, verbose_name='Slug', blank=True, null=True)
-    like = models.PositiveIntegerField(default=0, verbose_name='Me gusta')
-    dislike = models.PositiveIntegerField(default=0, verbose_name='No me gusta')
     # image = 
 
     def __str__(self):
@@ -50,12 +48,45 @@ class Post(BaseModel):
         verbose_name_plural = 'Posts'
 
 
+class LikePost(BaseModel):
+    # id
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='usuario')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name="Post", related_name='likes')
+    quantity = models.PositiveIntegerField(default=0, verbose_name='cantidad')
+
+    def __str__(self):
+        return str(self.quantity)
+    
+    class Meta:
+        unique_together = ['user', 'post']
+        db_table = 'like_post'
+        verbose_name = 'like'
+        verbose_name_plural = 'likes'
+
+
+class DisLikePost(BaseModel):
+    # id
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='usuario')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name="Post", related_name='dis_likes')
+    quantity = models.PositiveIntegerField(default=0, verbose_name='cantidad')
+
+    def __str__(self):
+        return str(self.quantity)
+    
+    class Meta:
+        unique_together = ['user', 'post']
+        db_table = 'dis_like_post'
+        verbose_name = 'dis_like'
+        verbose_name_plural = 'dis_likes'
+
+
+
+
 class Comment(BaseModel):
     # id
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, verbose_name='Usuario')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name='Post', related_name='comments')
     content = models.TextField(verbose_name='Contenido')
-    like = models.PositiveIntegerField(default=0, verbose_name='Me gusta')
     
     def __str__(self):
         return self.content
@@ -71,7 +102,6 @@ class CommentOnTheComment(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, verbose_name='Usuario')
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name='Comentario', related_name='comments_on_the_comments')
     content = models.TextField(verbose_name='Contenido')
-    like = models.PositiveIntegerField(default=0, verbose_name='Me gusta')
 
     def __str__(self):
         return self.content
