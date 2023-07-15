@@ -345,10 +345,17 @@ class PostLike(APIView):
         post = self.get_object()
         try:
             like, created = LikePost.objects.get_or_create(user=user, post=post, quantity=1)
+
+            if created:
+                search_dislike = DisLikePost.objects.filter(user=user, post=post)
+                if search_dislike:
+                    search_dislike.delete()   
+
             if created:
                 return Response({'message': 'like creado'}, status=status.HTTP_201_CREATED)
-            if like:
+            elif like:
                 return Response({'message': 'like recuperado'},status=status.HTTP_200_OK)
+            
         except:
             return Response({'mesagge': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -359,3 +366,35 @@ class PostLike(APIView):
 
 
 # -- dis likes --
+
+
+class DisPostLike(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_object(self):
+        pk=self.kwargs['pk']
+        return get_object_or_404(Post, pk=pk)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        post = self.get_object()
+        try:
+            dislike, created = DisLikePost.objects.get_or_create(user=user, post=post, quantity=1)
+
+            if created:
+                search_like = LikePost.objects.filter(user=user, post=post)
+                if search_like:
+                    search_like.delete()
+
+            if created:
+                return Response({'message': 'dislike creado'}, status=status.HTTP_201_CREATED)
+            elif dislike:
+                return Response({'message': 'dislike recuperado'},status=status.HTTP_200_OK)
+        except:
+            return Response({'mesagge': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        dislike = get_object_or_404(DisLikePost, post=self.get_object(), user=request.user)
+        dislike.delete()
+        return Response({'message': 'se elimino el dis like'}, status=status.HTTP_204_NO_CONTENT)

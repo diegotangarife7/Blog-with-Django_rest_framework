@@ -134,6 +134,11 @@ class ListPostSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
     comments = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
+    dislikes = serializers.SerializerMethodField()
+
+    def get_dislikes(self, obj):
+        number_dislikes = DisLikePost.objects.filter(post=obj).count()
+        return number_dislikes
 
     def get_likes(self, obj):
         number_likes = LikePost.objects.filter(post=obj).count()
@@ -156,6 +161,7 @@ class ListPostSerializer(serializers.ModelSerializer):
             'title',
             'content',
             'likes',
+            'dislikes',
             'comments',
         ]
 
