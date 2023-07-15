@@ -84,13 +84,21 @@ class CommentCreateDeleteSerializer(serializers.ModelSerializer):
         ]
 
 
+class CommentOnTheCommentCreateDeleteSerializer(serializers.ModelSerializer):
 
-class CommentListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentOnTheComment
+        fields = [
+            'content'
+        ]
+
+
+class CommentOnTheCommentSerializer(serializers.ModelSerializer):
 
     user = serializers.StringRelatedField()
-    
+
     class Meta:
-        model = Comment
+        model = CommentOnTheComment
         fields = [
             'id',
             'created_date',
@@ -101,14 +109,35 @@ class CommentListSerializer(serializers.ModelSerializer):
         ]
 
 
+class CommentListSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    comments_on_the_comments = serializers.SerializerMethodField()
+
+    def get_comments_on_the_comments(self, obj):
+        comments_on_the_comments = CommentOnTheComment.objects.filter(comment=obj, state=True).order_by('-id')
+        serializer = CommentOnTheCommentSerializer(comments_on_the_comments, many=True)
+        return serializer.data
+    
+    class Meta:
+        model = Comment
+        fields = [
+            'id',
+            'created_date',
+            'user',
+            'content',
+            'like',
+            'state',
+            'comments_on_the_comments'
+        ]
+
+
 class ListPostSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField()
     category = serializers.StringRelatedField()
-
     comments = serializers.SerializerMethodField()
 
     def get_comments(self, obj):
-        comments = Comment.objects.filter(post=obj, state=True)
+        comments = Comment.objects.filter(post=obj, state=True).order_by('-id')
         serializer = CommentListSerializer(comments, many=True)
         return serializer.data
 
@@ -125,7 +154,7 @@ class ListPostSerializer(serializers.ModelSerializer):
             'content',
             'like',
             'dislike',
-            'comments'
+            'comments',
         ]
         
 

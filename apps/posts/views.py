@@ -1,5 +1,4 @@
 from django.shortcuts import get_object_or_404
-from django.db.models import Prefetch
 
 from rest_framework.generics import (
     ListCreateAPIView, 
@@ -15,7 +14,6 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import PermissionDenied
 
-
 from .models import Category, Post, Comment
 from .serializers import (
     CategorySerializer, 
@@ -23,7 +21,7 @@ from .serializers import (
     ListPostSerializer,
     UpdatePostSerializer,
     CommentCreateDeleteSerializer,
-    CommentListSerializer
+    CommentOnTheCommentCreateDeleteSerializer
     )
 from .pagination import SmallResultsSetPagination
 
@@ -128,16 +126,6 @@ class PostCreateAPIView(CreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class PostListAPIView(ListAPIView):
-#     serializer_class = ListPostSerializer
-#     permission_classes = [AllowAny]
-#     pagination_class = SmallResultsSetPagination
-
-#     def get_queryset(self):
-#         return Post.objects.filter(published=True, state=True).order_by('-created_date')
-
 
 
 class PostListAPIView(ListAPIView):
@@ -248,9 +236,7 @@ class SeeMyPost(ListAPIView):
         return Response({'message': 'No tienes ningun post'}, status=status.HTTP_204_NO_CONTENT)
     
 
-
 # -- Comments ---
-
 
 class CommentCreateAPIView(CreateAPIView):
     serializer_class = CommentCreateDeleteSerializer
@@ -289,6 +275,47 @@ class CommentDeleteAPIView(DestroyAPIView):
             instance.save()
             return Response({'message': 'comentario eliminado'}, status=status.HTTP_204_NO_CONTENT)
 
-        return Response({'message': 'No puedes eliminar este comentario'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'message': 'Not Found'},status=status.HTTP_404_NOT_FOUND)
     
 
+# -- Comments on the Comments ---
+
+class CommentOnTheCommentCreateAPIView(CreateAPIView):
+    serializer_class = CommentOnTheCommentCreateDeleteSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_object(self):
+        comment_id = self.kwargs['pk']
+        print(comment_id)
+        return get_object_or_404(Comment, pk=comment_id)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            comment = self.get_object()
+            serializer.save(user=user, comment=comment)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CommentOnTheCommentDeleteAPIView(DestroyAPIView):
+    serializer_class = CommentOnTheCommentCreateDeleteSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_object(self):
+        pk = self.kwargs['pk']
+        return get_object_or_404(self.serializer_class.Meta.model, pk=pk, state=True)
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if request.user == instance.user:
+            instance.state = False
+            instance.save()
+            return Response({'message': 'comentario eliminado'}, status=status.HTTP_204_NO_CONTENT)
+        
+        return Response({'message': 'Not Found'},status=status.HTTP_404_NOT_FOUND)
+    

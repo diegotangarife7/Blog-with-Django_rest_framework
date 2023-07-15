@@ -26,4 +26,8 @@ urlpatterns = [
      path('comment/create/<int:pk>/', views.CommentCreateAPIView.as_view()),
      path('comment/delete/<int:pk>/', views.CommentDeleteAPIView.as_view()),
 
+          # Comments on the Comments
+     path('comment/on/the/comment/create/<int:pk>/', views.CommentOnTheCommentCreateAPIView.as_view()),
+     path('comment/on/the/comment/delete/<int:pk>/', views.CommentOnTheCommentDeleteAPIView.as_view()),
+
 ]
