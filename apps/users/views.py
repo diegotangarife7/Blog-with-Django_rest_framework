@@ -13,7 +13,8 @@ from .serializers import (
         UserListSerializer, 
         UserUpdateSerializer, 
         UserDeleteSerializer,
-        UserDetailSerializer
+        UserDetailSerializer,
+        UserUpdatePasswordSerializer
     )
 
 
@@ -93,3 +94,28 @@ class UserDeleteAPIView(DestroyAPIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         
         return Response({'message': 'No tienes permisos para eliminar este usuario'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+
+class UserPasswordUpdateAPIView(UpdateAPIView):
+    serializer_class = UserUpdatePasswordSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        pk = self.kwargs['pk']
+        return get_object_or_404(self.serializer_class.Meta.model, pk=pk, is_active=True)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user = request.user
+
+        if instance == user:
+            serializer = self.get_serializer(instance, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'message': 'Contraseña actualizada !!!'}, status=status.HTTP_200_OK)
+        
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
