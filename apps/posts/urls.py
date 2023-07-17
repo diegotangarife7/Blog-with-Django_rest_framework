@@ -33,8 +33,8 @@ urlpatterns = [
           # like and dis like
      path('like/<int:pk>/', views.PostLike.as_view()),
      path('like/delete/<int:pk>/', views.PostLike.as_view()),
-     path('dislike/<int:pk>/', views.DisPostLike.as_view()),
-     path('dislike/delete/<int:pk>/', views.DisPostLike.as_view()),
+     path('dislike/<int:pk>/', views.PostDisLike.as_view()),
+     path('dislike/delete/<int:pk>/', views.PostDisLike.as_view()),
 
 
 ]

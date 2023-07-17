@@ -80,8 +80,6 @@ class DisLikePost(BaseModel):
         verbose_name_plural = 'dis_likes'
 
 
-
-
 class Comment(BaseModel):
     # id
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, verbose_name='Usuario')

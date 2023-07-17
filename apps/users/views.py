@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 
 from rest_framework.views import APIView, status
-from rest_framework.generics import ListAPIView, UpdateAPIView, DestroyAPIView
+from rest_framework.generics import ListAPIView, UpdateAPIView, DestroyAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -12,7 +12,8 @@ from .serializers import (
         UserRegisterSerializer, 
         UserListSerializer, 
         UserUpdateSerializer, 
-        UserDeleteSerializer
+        UserDeleteSerializer,
+        UserDetailSerializer
     )
 
 
@@ -40,6 +41,17 @@ class UserListAll(ListAPIView):
 
     def get_queryset(self):
         return UserListSerializer.Meta.model.objects.all()
+    
+
+class UserDetailAPIView(RetrieveAPIView):
+    serializer_class = UserDetailSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_object(self):
+        name_user = self.request.user.name
+        pk = self.kwargs['pk']
+        return get_object_or_404(self.serializer_class.Meta.model, pk=pk, name=name_user, is_active=True)
     
 
 class UserUpdateAPIView(UpdateAPIView):

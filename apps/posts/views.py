@@ -330,9 +330,9 @@ class CommentOnTheCommentDeleteAPIView(DestroyAPIView):
         return Response({'message': 'Not Found'},status=status.HTTP_404_NOT_FOUND)
     
 
-# -- likes --
+# -- likes and dislikes --
 
-class PostLike(APIView):
+class PostBaseLikeAndDislike(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
@@ -340,6 +340,11 @@ class PostLike(APIView):
         pk=self.kwargs['pk']
         return get_object_or_404(Post, pk=pk)
 
+
+# -- likes --
+
+class PostLike(PostBaseLikeAndDislike):
+    
     def post(self, request, *args, **kwargs):
         user = request.user
         post = self.get_object()
@@ -347,15 +352,11 @@ class PostLike(APIView):
             like, created = LikePost.objects.get_or_create(user=user, post=post, quantity=1)
 
             if created:
-                search_dislike = DisLikePost.objects.filter(user=user, post=post)
-                if search_dislike:
-                    search_dislike.delete()   
-
+                DisLikePost.objects.filter(user=user, post=post).delete()
             if created:
                 return Response({'message': 'like creado'}, status=status.HTTP_201_CREATED)
             elif like:
                 return Response({'message': 'like recuperado'},status=status.HTTP_200_OK)
-            
         except:
             return Response({'mesagge': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -367,14 +368,7 @@ class PostLike(APIView):
 
 # -- dis likes --
 
-
-class DisPostLike(APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
-
-    def get_object(self):
-        pk=self.kwargs['pk']
-        return get_object_or_404(Post, pk=pk)
+class PostDisLike(PostBaseLikeAndDislike):
 
     def post(self, request, *args, **kwargs):
         user = request.user
@@ -383,10 +377,7 @@ class DisPostLike(APIView):
             dislike, created = DisLikePost.objects.get_or_create(user=user, post=post, quantity=1)
 
             if created:
-                search_like = LikePost.objects.filter(user=user, post=post)
-                if search_like:
-                    search_like.delete()
-
+                LikePost.objects.filter(user=user, post=post).delete()
             if created:
                 return Response({'message': 'dislike creado'}, status=status.HTTP_201_CREATED)
             elif dislike:

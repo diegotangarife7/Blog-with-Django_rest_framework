@@ -110,6 +110,25 @@ class UserDeleteSerializer(serializers.ModelSerializer):
         ]
 
 
+class UserDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            'email',
+            'name',
+            'last_name',
+            'gender',
+            'twitter',
+            'avatar',
+            'is_active'
+        ]
+
+        extra_kwargs = {
+            'is_active': {'write_only': True},
+        }
+
+
    
         
     
