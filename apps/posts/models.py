@@ -29,7 +29,7 @@ class Post(BaseModel):
     content = models.TextField(verbose_name='Contenido')
     published = models.BooleanField(default=True, verbose_name='Publicado')
     slug = models.CharField(max_length=300, verbose_name='Slug', blank=True, null=True)
-    # image = 
+    images = models.ManyToManyField('Image', verbose_name='Imagenes', null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -46,6 +46,11 @@ class Post(BaseModel):
         db_table = 'Post'
         verbose_name = 'Post'
         verbose_name_plural = 'Posts'
+
+
+class Image(BaseModel):
+    # id
+    image = models.ImageField(upload_to='media')
 
 
 class LikePost(BaseModel):

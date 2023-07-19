@@ -6,8 +6,12 @@ from .models import (
     LikePost,
     DisLikePost,
     Comment,
-    CommentOnTheComment
+    CommentOnTheComment,
+    Image
     )
+
+    
+admin.site.register(Image)
 
 
 class CategoryAdmin(admin.ModelAdmin):

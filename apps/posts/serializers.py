@@ -6,7 +6,8 @@ from .models import (
     Comment,
     CommentOnTheComment,
     LikePost,
-    DisLikePost
+    DisLikePost,
+    Image
 )
 
 
@@ -166,25 +167,10 @@ class ListPostSerializer(serializers.ModelSerializer):
         ]
 
 
+class ImageSerializer(serializers.ModelSerializer):
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    class Meta:
+        model = Image
+        fields = [
+            'image'
+        ]

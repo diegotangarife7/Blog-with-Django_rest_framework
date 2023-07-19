@@ -119,3 +119,4 @@ class UserPasswordUpdateAPIView(UpdateAPIView):
 
         return Response(status=status.HTTP_401_UNAUTHORIZED)
         
+# quitar el id de lo serializadores de post

@@ -43,7 +43,6 @@ class UserRegisterSerializer(serializers.ModelSerializer, UserValidateName, User
     class Meta:
         model = User
         fields = [
-            'id',
             'email',
             'name',
             'password',
@@ -96,7 +95,6 @@ class UserUpdateSerializer(serializers.ModelSerializer, UserValidateName):
     class Meta:
         model = User
         fields = [
-            'id',
             'email',
             'name',
             'last_name',
@@ -110,7 +108,6 @@ class UserDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id',
             'is_active'
         ]
 
@@ -120,6 +117,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
+            'id',
             'email',
             'name',
             'last_name',
