@@ -89,7 +89,7 @@ you can update your password by adding the `id` as a parameter `/users/password/
 [PUT]   http://127.0.0.1:8000/users/password/update/<id>/
 ```
 
-###### Comment a comment
+##### Comment a comment
 You can comment on a comment using its `id`
 ```
 [POST]  http://127.0.0.1:8000/posts/comment/on/the/comment/create/<id>/
